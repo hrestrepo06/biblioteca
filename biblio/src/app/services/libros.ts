@@ -1,0 +1,128 @@
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient, httpResource } from '@angular/common/http';
+import { Libro, LibroCreate } from '../models/libro.model';
+import { environment } from '../../environments/environment.development';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class Libros {
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl + "/libros";
+  
+  // -- Estado Local para Mutaciones --
+  private loadingMutation = signal<boolean>(false);
+  private errorMutation = signal<string | null>(null);
+
+  // -- Lecturas Reactivas (httpResource) --
+  // Obtiene los libros automáticamente
+  librosResource = httpResource(() => this.apiUrl, {
+    parse: (resp: any) => resp.libros as Libro[]
+  });
+
+  // Signal para almacenar el ID que buscamos consultar
+  private selectedIdSignal = signal<string | null>(null);
+
+  // Obtiene el libro automáticamente cada que selectedIdSignal cambie
+  selectedLibroResource = httpResource(() => {
+    const id = this.selectedIdSignal();
+    return id ? `${this.apiUrl}/${id}` : undefined;
+  }, {
+    parse: (resp: any) => resp.libro as Libro
+  });
+
+  // -- API Pública Expuesta para Componentes --
+  public libros = computed(() => this.librosResource.value() ?? []);
+  public selectedLibro = computed(() => this.selectedLibroResource.value() ?? null);
+  public totalLibros = computed(() => this.libros().length);
+
+  // Unificamos el estado de Carga de todo: Mutaciones + Lecturas
+  public loading = computed(() => 
+    this.loadingMutation() || 
+    this.librosResource.isLoading() || 
+    this.selectedLibroResource.isLoading()
+  );
+
+  // Unificamos el estado de Error: Mutaciones + Lecturas
+  public error = computed(() => 
+    this.errorMutation() || 
+    (this.librosResource.error() ? 'Error al cargar libros/recurso' : null) || 
+    (this.selectedLibroResource.error() ? 'Error al recurso' : null)
+  );
+
+  // ------------------------------------------
+  // Métodos Públicos
+  // ------------------------------------------
+
+  obtenerLibros(): void {
+    // Al usar httpResource esto es redundante porque hace fetch al cargar, 
+    // pero lo dejamos disponible para recargar manual si los componentes lo requieren.
+    this.librosResource.reload();
+  }
+  
+  crearLibro(libro: LibroCreate): void {
+    this.loadingMutation.set(true);
+    this.errorMutation.set(null);
+    
+    this.http.post<{success: boolean, libro: Libro}>(this.apiUrl, libro).subscribe({
+      next: (response) => {
+        // Optimistic update
+        this.librosResource.update(libros => [...(libros ?? []), response.libro]);
+        this.loadingMutation.set(false);
+      },
+      error: (error) => {
+        this.errorMutation.set('Error al crear el libro');
+        this.loadingMutation.set(false);
+        console.error('Error:', error);
+      }
+    });
+  }
+  
+  obtenerLibroPorId(id: string): void {
+    // El cambiar esta variable detona internamente un GET fetch en selectedLibroResource
+    this.selectedIdSignal.set(id);
+  }
+  
+  actualizarLibro(id: string, libro: Partial<Libro>): void {
+    this.loadingMutation.set(true);
+    this.errorMutation.set(null);
+    
+    this.http.put<{success: boolean, libro: Libro}>(`${this.apiUrl}/${id}`, libro).subscribe({
+      next: (response) => {
+        this.librosResource.update(libros =>
+          (libros ?? []).map(lib => lib._id === id ? response.libro : lib)
+        );
+        this.loadingMutation.set(false);
+      },
+      error: (error) => {
+        this.errorMutation.set('Error al actualizar el libro');
+        this.loadingMutation.set(false);
+        console.error('Error:', error);
+      }
+    });
+  }
+  
+  eliminarLibro(id: string): void {
+    this.loadingMutation.set(true);
+    this.errorMutation.set(null);
+    
+    this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+      next: () => {
+        this.librosResource.update(libros => (libros ?? []).filter(lib => lib._id !== id));
+        if (this.selectedIdSignal() === id) {
+          this.selectedIdSignal.set(null);
+        }
+        this.loadingMutation.set(false);
+      },
+      error: (error) => {
+        this.errorMutation.set('Error al eliminar el libro');
+        this.loadingMutation.set(false);
+        console.error('Error:', error);
+      }
+    });
+  }
+  
+  limpiarSeleccion(): void {
+    this.selectedIdSignal.set(null);
+  }
+}
