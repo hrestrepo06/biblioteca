@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Libro, LibroCreate } from '../models/libro.model';
 import { environment } from '../../environments/environment.development';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -60,22 +61,22 @@ export class Libros {
     this.librosResource.reload();
   }
   
-  crearLibro(libro: LibroCreate): void {
+  async crearLibro(libro: LibroCreate): Promise<void> {
     this.loadingMutation.set(true);
     this.errorMutation.set(null);
     
-    this.http.post<{success: boolean, libro: Libro}>(this.apiUrl, libro).subscribe({
-      next: (response) => {
-        // Optimistic update
-        this.librosResource.update(libros => [...(libros ?? []), response.libro]);
-        this.loadingMutation.set(false);
-      },
-      error: (error) => {
-        this.errorMutation.set('Error al crear el libro');
-        this.loadingMutation.set(false);
-        console.error('Error:', error);
-      }
-    });
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{success: boolean, libro: Libro}>(this.apiUrl, libro)
+      );
+      this.librosResource.update(libros => [...(libros ?? []), response.libro]);
+      this.loadingMutation.set(false);
+    } catch (error) {
+      this.errorMutation.set('Error al crear el libro');
+      this.loadingMutation.set(false);
+      console.error('Error:', error);
+      throw error;
+    }
   }
   
   obtenerLibroPorId(id: string): void {
@@ -83,43 +84,43 @@ export class Libros {
     this.selectedIdSignal.set(id);
   }
   
-  actualizarLibro(id: string, libro: Partial<Libro>): void {
+  async actualizarLibro(id: string, libro: Partial<Libro>): Promise<void> {
     this.loadingMutation.set(true);
     this.errorMutation.set(null);
     
-    this.http.put<{success: boolean, libro: Libro}>(`${this.apiUrl}/${id}`, libro).subscribe({
-      next: (response) => {
-        this.librosResource.update(libros =>
-          (libros ?? []).map(lib => lib._id === id ? response.libro : lib)
-        );
-        this.loadingMutation.set(false);
-      },
-      error: (error) => {
-        this.errorMutation.set('Error al actualizar el libro');
-        this.loadingMutation.set(false);
-        console.error('Error:', error);
-      }
-    });
+    try {
+      const response = await firstValueFrom(
+        this.http.put<{success: boolean, libro: Libro}>(`${this.apiUrl}/${id}`, libro)
+      );
+      this.librosResource.update(libros =>
+        (libros ?? []).map(lib => lib._id === id ? response.libro : lib)
+      );
+      this.loadingMutation.set(false);
+    } catch (error) {
+      this.errorMutation.set('Error al actualizar el libro');
+      this.loadingMutation.set(false);
+      console.error('Error:', error);
+      throw error;
+    }
   }
   
-  eliminarLibro(id: string): void {
+  async eliminarLibro(id: string): Promise<void> {
     this.loadingMutation.set(true);
     this.errorMutation.set(null);
     
-    this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-      next: () => {
-        this.librosResource.update(libros => (libros ?? []).filter(lib => lib._id !== id));
-        if (this.selectedIdSignal() === id) {
-          this.selectedIdSignal.set(null);
-        }
-        this.loadingMutation.set(false);
-      },
-      error: (error) => {
-        this.errorMutation.set('Error al eliminar el libro');
-        this.loadingMutation.set(false);
-        console.error('Error:', error);
+    try {
+      await firstValueFrom(this.http.delete(`${this.apiUrl}/${id}`));
+      this.librosResource.update(libros => (libros ?? []).filter(lib => lib._id !== id));
+      if (this.selectedIdSignal() === id) {
+        this.selectedIdSignal.set(null);
       }
-    });
+      this.loadingMutation.set(false);
+    } catch (error) {
+      this.errorMutation.set('Error al eliminar el libro');
+      this.loadingMutation.set(false);
+      console.error('Error:', error);
+      throw error;
+    }
   }
   
   limpiarSeleccion(): void {
