@@ -33,22 +33,20 @@ export class LibroForm {
   error = this.libroService.error;
   
   constructor() {
-    // Reacciona automáticamente si el ID está presente
+    // Reacciona automáticamente si el ID está presente para disparar la carga
     effect(() => {
       const routerId = this.id();
       if (routerId) {
         this.esEdicion.set(true);
         this.libroId.set(routerId);
-        this.cargarLibro(routerId);
+        this.libroService.obtenerLibroPorId(routerId);
       }
     });
-  }
-  
-  cargarLibro(id: string) {
-    this.libroService.obtenerLibroPorId(id);
-    setTimeout(() => {
+    
+    // Escucha automáticamente cuando el libro carga, y parcha el formulario (sin setTimeout)
+    effect(() => {
       const libro = this.libroService.selectedLibro();
-      if (libro) {
+      if (libro && this.esEdicion() && this.libroId() === libro._id) {
         this.libroForm.patchValue({
           titulo: libro.titulo,
           autor: libro.autor,
@@ -58,24 +56,23 @@ export class LibroForm {
           sede: libro.sede || ''
         });
       }
-    }, 100);
+    });
   }
   
-  onSubmit() {
+  async onSubmit() {
     if (this.libroForm.valid) {
       // TypeScript infiere automáticamente el tipo
       const libroData = this.libroForm.value;
       
-      if (this.esEdicion() && this.libroId()) {
-        this.libroService.actualizarLibro(this.libroId()!, libroData);
-        setTimeout(() => {
-          this.router.navigate(['/libros']);
-        }, 500);
-      } else {
-        this.libroService.crearLibro(libroData as any);
-        setTimeout(() => {
-          this.router.navigate(['/libros']);
-        }, 500);
+      try {
+        if (this.esEdicion() && this.libroId()) {
+          await this.libroService.actualizarLibro(this.libroId()!, libroData);
+        } else {
+          await this.libroService.crearLibro(libroData as any);
+        }
+        this.router.navigate(['/libros']);
+      } catch (error) {
+        console.error("Error al guardar:", error);
       }
     }
   }

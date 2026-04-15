@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 //import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Libros } from '../../services/libros';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-libro-list',
@@ -11,6 +12,7 @@ import { Libros } from '../../services/libros';
 })
 export class LibroList implements OnInit {
   private libroService = inject(Libros);
+  private authService = inject(AuthService);
   
   libros = this.libroService.libros;
   loading = this.libroService.loading;
@@ -29,5 +31,11 @@ export class LibroList implements OnInit {
   
   recargar() {
     this.libroService.obtenerLibros();
+  }
+
+  onLogout() {
+    if (confirm('¿Estás seguro de que deseas cerrar la sesión?')) {
+      this.authService.logout();
+    }
   }
 }
