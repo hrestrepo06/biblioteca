@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth';
@@ -9,11 +9,17 @@ import { AuthService } from '../../services/auth';
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class Login {
+export class Login implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+
+  ngOnInit(): void {
+    // Aseguramos que el formulario esté vacío al entrar, 
+    // previniendo "sobras" de sesiones anteriores.
+    this.loginForm.reset();
+  }
 
   // ── Formulario reactivo ────────────────────────────────────────────
   loginForm: FormGroup = this.fb.group({

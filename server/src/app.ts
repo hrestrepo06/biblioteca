@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { librosRouter } from './routes/libros.routes';
 import { authRouter } from './routes/auth.routes';
+import { usuarioRouter } from './routes/usuario.routes';
 
 export const app = express();
 
@@ -24,6 +25,7 @@ app.use(cookieParser()); // Necesario para leer req.cookies
 // ── Rutas ─────────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRouter);         // Rutas públicas de autenticación
 app.use('/api/libros', librosRouter);      // Rutas protegidas de libros
+app.use('/api/usuarios', usuarioRouter);   // Rutas protegidas de usuarios
 
 // ── Ruta legada (compatibilidad) ──────────────────────────────────────────────
 app.use('/libros', librosRouter);

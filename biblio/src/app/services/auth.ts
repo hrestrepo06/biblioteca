@@ -90,4 +90,13 @@ export class AuthService {
         },
       });
   }
+
+  /**
+   * Verifica si el usuario actual tiene alguno de los roles permitidos.
+   */
+  hasRole(allowedRoles: string[]): boolean {
+    const user = this.currentUser();
+    if (!user) return false;
+    return allowedRoles.includes(user.rol);
+  }
 }

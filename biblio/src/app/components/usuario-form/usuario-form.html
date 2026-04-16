@@ -1,0 +1,134 @@
+<div class="min-h-screen bg-gray-950 flex flex-col">
+  <div class="container mx-auto px-4 py-8 max-w-2xl flex-1">
+    <div class="mb-8">
+      <a routerLink="/usuarios" class="text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-2 font-medium">
+        ← Volver a la lista
+      </a>
+    </div>
+
+    <div class="bg-gray-900/40 backdrop-blur-2xl rounded-3xl border border-gray-800 p-8 shadow-2xl">
+      <div class="mb-8 text-center">
+        <h2 class="text-3xl font-bold text-white mb-2">
+          {{ esEdicion() ? 'Editar Usuario' : 'Nuevo Usuario' }}
+        </h2>
+        <p class="text-gray-400">
+          {{ esEdicion() ? 'Modifica los permisos o datos de acceso' : 'Registra un nuevo integrante en tu biblioteca' }}
+        </p>
+      </div>
+
+      <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()" class="space-y-6" autocomplete="off">
+        <div class="grid grid-cols-1 gap-6">
+          
+          <!-- Nombre -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-2 uppercase tracking-tight">Nombre Completo</label>
+            <input
+              type="text"
+              formControlName="nombre"
+              placeholder="Ej: Juan Pérez"
+              class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
+            />
+            @if (usuarioForm.get('nombre')?.invalid && usuarioForm.get('nombre')?.touched) {
+              <p class="text-red-400 text-xs mt-2 font-medium">El nombre es obligatorio (mínimo 2 caracteres)</p>
+            }
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-2 uppercase tracking-tight">Correo Electrónico</label>
+            <input
+              type="email"
+              formControlName="email"
+              placeholder="correo@ejemplo.com"
+              class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
+            />
+            @if (usuarioForm.get('email')?.invalid && usuarioForm.get('email')?.touched) {
+              <p class="text-red-400 text-xs mt-2 font-medium">Ingresa un correo electrónico válido</p>
+            }
+          </div>
+
+          <!-- Password (Solo requerido en crear) -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-2 uppercase tracking-tight">
+              Contraseña {{ esEdicion() ? '(Dejar en blanco para no cambiar)' : '' }}
+            </label>
+            <div class="relative">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="********"
+                autocomplete="new-password"
+                class="w-full px-5 py-3 bg-gray-800/50 border border-gray-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-600"
+              />
+              <button 
+                type="button" 
+                (click)="showPassword = !showPassword"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-400 transition-colors">
+                {{ showPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+            @if (usuarioForm.get('password')?.invalid && usuarioForm.get('password')?.touched) {
+              <p class="text-red-400 text-xs mt-2 font-medium">La contraseña debe tener al menos 6 caracteres</p>
+            }
+          </div>
+
+          <!-- Rol -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-2 uppercase tracking-tight">Rol de Usuario</label>
+            <div class="grid grid-cols-3 gap-3">
+              @for (rol of ['lector', 'bibliotecario', 'admin']; track rol) {
+                <label 
+                  [class.ring-2]="usuarioForm.get('rol')?.value === rol"
+                  [class.ring-blue-500]="usuarioForm.get('rol')?.value === rol"
+                  [class.bg-blue-500/10]="usuarioForm.get('rol')?.value === rol"
+                  class="flex flex-col items-center p-3 rounded-xl border border-gray-700 bg-gray-800/30 cursor-pointer hover:bg-gray-800/50 transition-all">
+                  <input type="radio" [value]="rol" formControlName="rol" class="hidden">
+                  <span class="text-xs uppercase font-bold" [class.text-blue-400]="usuarioForm.get('rol')?.value === rol">{{ rol }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Switch Activo -->
+          <div class="flex items-center justify-between p-4 bg-gray-800/30 rounded-2xl border border-gray-700">
+            <div>
+              <p class="text-white font-semibold">Estado del Usuario</p>
+              <p class="text-xs text-gray-500">Define si el usuario puede acceder al sistema</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" formControlName="activo" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="flex gap-4 pt-4">
+          <button
+            type="submit"
+            [disabled]="usuarioForm.invalid || loading()"
+            class="flex-1 group relative flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-blue-900/20 active:scale-[0.98]">
+            @if (loading()) {
+              <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Procesando...</span>
+            } @else {
+              <span>{{ esEdicion() ? 'Guardar Cambios' : 'Crear Usuario' }}</span>
+            }
+          </button>
+          
+          <a
+            routerLink="/usuarios"
+            class="px-6 py-4 bg-gray-800 text-gray-400 font-bold rounded-2xl hover:bg-gray-700 hover:text-white transition-all">
+            Cancelar
+          </a>
+        </div>
+      </form>
+
+      @if (error()) {
+        <div class="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl animate-shake">
+          <p class="text-red-400 text-sm font-medium text-center">⚠️ {{ error() }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

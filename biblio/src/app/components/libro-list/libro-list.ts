@@ -17,6 +17,7 @@ export class LibroList implements OnInit {
   libros = this.libroService.libros;
   loading = this.libroService.loading;
   error = this.libroService.error;
+  currentUser = this.authService.currentUser;
   
   ngOnInit() {
     this.libroService.obtenerLibros();

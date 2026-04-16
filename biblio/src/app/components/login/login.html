@@ -25,7 +25,7 @@
     </div>
 
     <!-- Formulario -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" novalidate>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" novalidate autocomplete="off">
 
       <!-- Campo Email -->
       <div class="field-group" [class.field-error]="emailInvalid()">
@@ -44,7 +44,7 @@
             formControlName="email"
             class="field-input"
             placeholder="you@ejemplo.com"
-            autocomplete="email"
+            autocomplete="off"
           />
         </div>
         @if (emailInvalid()) {
@@ -69,7 +69,7 @@
             formControlName="password"
             class="field-input"
             placeholder="••••••••"
-            autocomplete="current-password"
+            autocomplete="off"
           />
           <button type="button" class="toggle-password" (click)="togglePassword()" tabindex="-1"
             [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">

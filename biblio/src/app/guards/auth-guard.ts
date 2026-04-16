@@ -11,6 +11,12 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if (authService.isAuthenticated()) {
+    // Verificación de roles (si se definieron en la ruta)
+    const allowedRoles = route.data['roles'] as string[];
+    if (allowedRoles && !authService.hasRole(allowedRoles)) {
+      router.navigate(['/libros']); // Redirigir a inicio si no tiene permisos
+      return false;
+    }
     return true;
   }
 

@@ -1,7 +1,7 @@
 import { Component, effect, inject, signal, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Libros } from '../../services/libros';
-//import { Libro } from '../../models/libro.model';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-libro-detail',
@@ -11,7 +11,9 @@ import { Libros } from '../../services/libros';
 })
 export class LibroDetail {
   private libroService = inject(Libros);
+  private authService = inject(AuthService);
   
+  currentUser = this.authService.currentUser;
   // Parametro :id inyectado por el Router gracias a withComponentInputBinding
   id = input<string>();
   
