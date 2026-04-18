@@ -1,0 +1,67 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-sm">
+  <div class="w-full max-w-md bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+    <div class="p-6">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-green-500/10 text-green-400 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white">Registrar Salida</h2>
+          <p class="text-sm text-gray-400">Selecciona el lector que llevará el libro.</p>
+        </div>
+      </div>
+
+      <!-- Error message -->
+      @if (errorStr()) {
+        <div class="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {{ errorStr() }}
+        </div>
+      }
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 px-1">Lector / Usuario</label>
+          <select 
+            [(ngModel)]="selectedUsuarioId"
+            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all appearance-none cursor-pointer">
+            <option value="" disabled>Selecciona un usuario...</option>
+            @for (u of usuarios(); track u.id) {
+              <option [value]="u.id">
+                {{ u.nombre }} ({{ u.email }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="p-4 bg-gray-950/50 rounded-2xl border border-gray-800/50 space-y-2">
+          <div class="flex justify-between text-xs">
+            <span class="text-gray-500">Plazo máximo:</span>
+            <span class="text-green-400 font-bold">3 Días</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-gray-500">Límite por usuario:</span>
+            <span class="text-gray-300">3 Libros</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-8">
+        <button 
+          (click)="cancelar()"
+          class="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold rounded-xl transition-all">
+          Cancelar
+        </button>
+        <button 
+          (click)="registrar()"
+          [disabled]="loading() || !selectedUsuarioId()"
+          class="flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed text-gray-950 font-bold rounded-xl transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-2">
+          @if (loading()) {
+            <div class="w-4 h-4 border-2 border-gray-950/30 border-t-gray-950 rounded-full animate-spin"></div>
+          }
+          <span>{{ loading() ? 'Procesando...' : 'Confirmar Préstamo' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

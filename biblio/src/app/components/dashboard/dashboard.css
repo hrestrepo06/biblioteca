@@ -1,0 +1,27 @@
+/* dashboard.css */
+:host {
+    display: block;
+}
+
+/* Animaciones suaves para las tarjetas */
+.group:hover {
+    transform: translateY(-4px);
+}
+
+/* Scrollbar personalizado para la tabla */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 197, 94, 0.2);
+}

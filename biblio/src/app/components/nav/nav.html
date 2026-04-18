@@ -1,0 +1,68 @@
+<nav *ngIf="isAuthenticated()" class="fixed left-0 top-0 h-screen w-64 bg-gray-950/80 backdrop-blur-xl border-r border-gray-800/50 z-50 flex flex-col p-6 shadow-2xl">
+  
+  <!-- Logo Section -->
+  <div class="mb-12">
+    <h1 class="text-xl font-black bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent tracking-tighter">
+      BIBLIOTECA<br>DIGITAL
+    </h1>
+    <div class="h-1 w-8 bg-green-500 rounded-full mt-2"></div>
+  </div>
+
+  <!-- Menu Links -->
+  <div class="flex-1 flex flex-col gap-2">
+    <span class="text-[9px] text-gray-600 font-black uppercase tracking-[0.3em] mb-4">Menú Principal</span>
+    
+    <a routerLink="/dashboard" 
+       routerLinkActive="bg-green-500/10 text-green-400 border-green-500/20"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all group border border-transparent">
+        <span class="text-lg opacity-60 group-hover:opacity-100">📊</span>
+        <span class="text-sm font-black uppercase tracking-widest">Dashboard</span>
+    </a>
+
+    <a routerLink="/libros" 
+       routerLinkActive="bg-green-500/10 text-green-400 border-green-500/20"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all group border border-transparent">
+        <span class="text-lg opacity-60 group-hover:opacity-100">📚</span>
+        <span class="text-sm font-black uppercase tracking-widest">Catálogo</span>
+    </a>
+
+    <ng-container *ngIf="currentUser()?.rol === 'admin' || currentUser()?.rol === 'bibliotecario'">
+      <div class="h-px bg-gray-900 my-4"></div>
+      <span class="text-[9px] text-gray-600 font-black uppercase tracking-[0.3em] mb-4">Gestión</span>
+
+      <a routerLink="/prestamos" 
+         routerLinkActive="bg-green-500/10 text-green-400 border-green-500/20"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all group border border-transparent">
+          <span class="text-lg opacity-60 group-hover:opacity-100">📑</span>
+          <span class="text-sm font-black uppercase tracking-widest">Préstamos</span>
+      </a>
+      
+      <a *ngIf="currentUser()?.rol === 'admin'" 
+         routerLink="/usuarios" 
+         routerLinkActive="bg-green-500/10 text-green-400 border-green-500/20"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all group border border-transparent">
+          <span class="text-lg opacity-60 group-hover:opacity-100">👥</span>
+          <span class="text-sm font-black uppercase tracking-widest">Usuarios</span>
+      </a>
+    </ng-container>
+  </div>
+
+  <!-- User Info & Logout -->
+  <div class="pt-6 border-t border-gray-900 mt-auto">
+    <div class="flex items-center gap-3 mb-6 px-2">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-black shadow-lg shadow-green-900/40">
+        {{ currentUser()?.nombre?.substring(0,1) }}
+      </div>
+      <div class="flex flex-col min-w-0">
+        <span class="text-xs font-black text-white truncate">{{ currentUser()?.nombre }}</span>
+        <span class="text-[8px] text-gray-600 font-bold uppercase tracking-widest">{{ currentUser()?.rol }}</span>
+      </div>
+    </div>
+    
+    <button (click)="onLogout()" 
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500/60 hover:text-red-400 hover:bg-red-500/5 transition-all border border-transparent">
+      <span class="text-lg">🚪</span>
+      <span class="text-sm font-black uppercase tracking-widest">Salir</span>
+    </button>
+  </div>
+</nav>

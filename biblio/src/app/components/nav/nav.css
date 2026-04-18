@@ -1,0 +1,37 @@
+/* nav.css */
+:host {
+  display: block;
+}
+
+/* Evitar que el contenido se deslice debajo del sidebar en desktop */
+@media (min-width: 1024px) {
+  nav {
+    position: fixed;
+  }
+}
+
+/* Transiciones suaves para los enlaces */
+a {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+a:hover {
+  transform: translateX(4px);
+}
+
+/* Efecto de brillo sutil para el enlace activo */
+.bg-green-500\/10 {
+  box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.05);
+}
+
+/* Animación de pulso lento para el indicador de rol */
+.from-green-500 {
+  background-size: 200% 200%;
+  animation: gradientSlow 5s ease infinite;
+}
+
+@keyframes gradientSlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

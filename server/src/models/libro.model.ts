@@ -8,6 +8,9 @@ const libroSchema = new Schema(
     editorial: { type: String, trim: true },
     categoria: { type: String, trim: true },
     sede: { type: String, trim: true },
+    disponible: { type: Boolean, default: true },
+    portadaUrl: { type: String, trim: true },
+    contraportadaUrl: { type: String, trim: true },
   },
   {
     timestamps: true,

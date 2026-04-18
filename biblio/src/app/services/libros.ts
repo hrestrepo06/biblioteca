@@ -9,7 +9,8 @@ import { firstValueFrom } from 'rxjs';
 })
 export class Libros {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl + "/libros";
+  private apiUrl = `${environment.apiUrl}/libros`;
+  public imageBaseUrl = environment.baseUrl; // Para acceder a /covers en la raíz
   
   // -- Estado Local para Mutaciones --
   private loadingMutation = signal<boolean>(false);

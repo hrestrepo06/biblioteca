@@ -2,10 +2,11 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
-  // Redirige raíz a /libros (el guard se encarga de mandar al login si no está autenticado)
+  // ── Ruta pública: Landing Page de Impacto ─────────────────────────
   {
     path: '',
-    redirectTo: '/libros',
+    loadComponent: () => import('./components/landing/landing').then(m => m.Landing),
+    canActivate: [guestGuard],
     pathMatch: 'full'
   },
 
@@ -13,10 +14,15 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./components/login/login').then(m => m.Login),
-    canActivate: [guestGuard]  // Si ya está logueado → redirige a /libros
+    canActivate: [guestGuard]  // Si ya está logueado → redirige a /dashboard
   },
 
   // ── Rutas protegidas: requieren JWT válido ───────────────────────
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./components/dashboard/dashboard').then(m => m.Dashboard),
+    canActivate: [authGuard]
+  },
   {
     path: 'libros',
     loadComponent: () => import('./components/libro-list/libro-list').then(m => m.LibroList),
@@ -69,9 +75,23 @@ export const routes: Routes = [
     ]
   },
 
+  // RUTA DE PRÉSTAMOS (Admin y Bibliotecario)
+  {
+    path: 'prestamos',
+    canActivate: [authGuard],
+    data: { roles: ['bibliotecario', 'admin'] },
+    children: [
+      { 
+        path: '', 
+        loadComponent: () => import('./components/prestamo-list/prestamo-list').then(m => m.PrestamoList), 
+        title: 'Gestión de Préstamos - Biblioteca' 
+      }
+    ]
+  },
+
   // ── Wildcard ─────────────────────────────────────────────────────
   {
     path: '**',
-    redirectTo: '/libros'
+    redirectTo: '/dashboard'
   }
 ];

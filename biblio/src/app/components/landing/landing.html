@@ -1,0 +1,99 @@
+<div class="min-h-screen bg-gray-950 text-white selection:bg-green-500/30 overflow-x-hidden">
+  
+  <!-- Fondo Decorativo con Gradientes -->
+  <div class="fixed inset-0 pointer-events-none">
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-[5%] right-[-5%] w-[30%] h-[30%] bg-emerald-500/5 rounded-full blur-[100px]"></div>
+  </div>
+
+  <!-- Barra de Navegación Simple -->
+  <header class="relative z-10 container mx-auto px-6 py-8 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-green-500 rounded-lg shadow-lg shadow-green-900/40 flex items-center justify-center font-black text-gray-950 text-xs tracking-tighter">B</div>
+      <span class="text-sm font-black tracking-widest uppercase">Biblioteca<span class="text-green-500">Digital</span></span>
+    </div>
+    <a routerLink="/login" class="px-6 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+      Identificarse
+    </a>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="relative z-10 container mx-auto px-6 pt-20 pb-32">
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-green-400 mb-8 animate-bounce">
+        ✨ Nueva Versión Premium v2.0
+      </div>
+      
+      <h1 class="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-10">
+        La gestión de libros,<br>
+        <span class="bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 bg-clip-text text-transparent">reestructurada.</span>
+      </h1>
+      
+      <p class="text-gray-500 text-lg md:text-xl font-medium max-w-2xl mx-auto mb-12 leading-relaxed">
+        Experimenta una plataforma de biblioteca moderna con visualización 3D interactiva, estadísticas en tiempo real y gestión inteligente de préstamos.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+        <a routerLink="/login" class="group relative px-10 py-5 bg-green-500 text-gray-950 font-black uppercase tracking-widest text-xs rounded-2xl overflow-hidden hover:bg-green-400 transition-all shadow-2xl shadow-green-900/50 active:scale-95">
+          <span class="relative z-10">Empezar ahora</span>
+          <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+        </a>
+        <a href="#features" class="text-gray-400 hover:text-white text-xs font-black uppercase tracking-widest transition-all">
+          Saber más ↓
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Features Grid -->
+  <section id="features" class="relative z-10 container mx-auto px-6 pb-40">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <!-- Feature 1 -->
+      <div class="p-8 bg-gray-900/40 backdrop-blur-md border border-gray-800/50 rounded-3xl group hover:border-green-500/30 transition-all">
+        <div class="w-14 h-14 bg-gray-800 rounded-2xl flex items-center justify-center text-3xl mb-6 border border-gray-700 group-hover:bg-green-500/10 group-hover:border-green-500/20 transition-all">
+          👓
+        </div>
+        <h3 class="text-xl font-black text-white mb-3 tracking-tight">Inmersión Visual</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          Explora nuestro catálogo con portadas generadas por IA y una vista de detalle 3D interactiva para examinar cada obra.
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="p-8 bg-gray-900/40 backdrop-blur-md border border-gray-800/50 rounded-3xl group hover:border-green-500/30 transition-all">
+        <div class="w-14 h-14 bg-gray-800 rounded-2xl flex items-center justify-center text-3xl mb-6 border border-gray-700 group-hover:bg-green-500/10 group-hover:border-green-500/20 transition-all">
+          📊
+        </div>
+        <h3 class="text-xl font-black text-white mb-3 tracking-tight">Datos a la Vista</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          Dashboard intuitivo con métricas en tiempo real sobre disponibilidad, actividad reciente y alertas críticas.
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="p-8 bg-gray-900/40 backdrop-blur-md border border-gray-800/50 rounded-3xl group hover:border-green-500/30 transition-all">
+        <div class="w-14 h-14 bg-gray-800 rounded-2xl flex items-center justify-center text-3xl mb-6 border border-gray-700 group-hover:bg-green-500/10 group-hover:border-green-500/20 transition-all">
+          ⚡
+        </div>
+        <h3 class="text-xl font-black text-white mb-3 tracking-tight">Gestión Ágil</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          Registro de préstamos simplificado y alertas proactivas de vencimiento para mantener tu biblioteca organizada.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer Simple -->
+  <footer class="relative z-10 border-t border-gray-900 py-12">
+    <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+      <span class="text-gray-600 text-[10px] font-black uppercase tracking-widest">© 2026 Biblioteca Digital Premium</span>
+      <div class="flex gap-8">
+        <a class="text-gray-600 hover:text-green-500 text-[10px] font-black uppercase tracking-widest transition-all">Privacidad</a>
+        <a class="text-gray-600 hover:text-green-500 text-[10px] font-black uppercase tracking-widest transition-all">Términos</a>
+      </div>
+    </div>
+  </footer>
+
+</div>

@@ -7,6 +7,9 @@ export interface Libro {
   editorial: string;
   categoria: string;
   sede: string;
+  disponible?: boolean;
+  portadaUrl?: string;
+  contraportadaUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }

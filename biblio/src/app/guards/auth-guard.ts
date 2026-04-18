@@ -14,7 +14,7 @@ export const authGuard: CanActivateFn = (route, state) => {
     // Verificación de roles (si se definieron en la ruta)
     const allowedRoles = route.data['roles'] as string[];
     if (allowedRoles && !authService.hasRole(allowedRoles)) {
-      router.navigate(['/libros']); // Redirigir a inicio si no tiene permisos
+      router.navigate(['/dashboard']); // Redirigir a inicio si no tiene permisos
       return false;
     }
     return true;
@@ -38,6 +38,6 @@ export const guestGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  router.navigate(['/libros']);
+  router.navigate(['/dashboard']);
   return false;
 };

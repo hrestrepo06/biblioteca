@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class UsuariosService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/usuarios`;
+  private apiUrl = `${environment.apiUrl}/usuarios`;
 
   // Estado reactivo Signals
   private loadingMutation = signal<boolean>(false);

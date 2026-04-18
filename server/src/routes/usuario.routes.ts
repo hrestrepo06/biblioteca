@@ -13,11 +13,11 @@ export const usuarioRouter = Router();
 // Todas las rutas de usuarios requieren autenticación
 usuarioRouter.use(requireAuth);
 
-// IMPORTANTE: Por seguridad, sólo los 'admin' pueden gestionar usuarios
-usuarioRouter.use(requireRole('admin'));
+// Rutas de consulta: Permitidas para Admin y Bibliotecario
+usuarioRouter.get('/', requireRole('admin', 'bibliotecario'), obtenerUsuarios);
+usuarioRouter.get('/:id', requireRole('admin', 'bibliotecario'), obtenerUsuario);
 
-usuarioRouter.get('/', obtenerUsuarios);
-usuarioRouter.get('/:id', obtenerUsuario);
-usuarioRouter.post('/', crearUsuario);
-usuarioRouter.put('/:id', actualizarUsuario);
-usuarioRouter.delete('/:id', eliminarUsuario);
+// Rutas de modificación: Exclusivas para Admin
+usuarioRouter.post('/', requireRole('admin'), crearUsuario);
+usuarioRouter.put('/:id', requireRole('admin'), actualizarUsuario);
+usuarioRouter.delete('/:id', requireRole('admin'), eliminarUsuario);

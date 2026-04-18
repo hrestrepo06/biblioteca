@@ -1,0 +1,102 @@
+<div class="min-h-screen bg-gray-950 text-gray-100 font-sans p-4 md:p-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header Area -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">Control de Préstamos</h1>
+        <p class="text-gray-400">Gestiona las salidas y entradas de libros en inventario.</p>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <button 
+          (click)="ngOnInit()" 
+          class="p-2 bg-gray-900 border border-gray-800 rounded-lg hover:bg-gray-800 transition-all"
+          title="Refrescar lista">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+        </button>
+        <!-- El botón de Nuevo Préstamo estará en el listado de libros o detalle para mejor flujo, pero podemos ponerlo aquí también -->
+        <a routerLink="/libros" class="px-5 py-2.5 bg-green-500 hover:bg-green-400 text-gray-950 font-bold rounded-xl transition-all shadow-lg shadow-green-500/10 flex items-center gap-2">
+          <span>+ Nuevo Préstamo</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="relative bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl overflow-hidden">
+      
+      @if (loading() && !prestamos().length) {
+        <div class="flex flex-col items-center justify-center py-24">
+          <div class="w-12 h-12 border-4 border-green-500/20 border-t-green-500 rounded-full animate-spin mb-4"></div>
+          <p class="text-gray-500 font-medium">Cargando registros...</p>
+        </div>
+      }
+
+      @if (error()) {
+        <div class="m-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-900/60 border-b border-gray-800">
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Libro</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Lector</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Salida</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Vencimiento</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Estado</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800/50">
+            @for (p of prestamos(); track p.id) {
+              <tr class="group hover:bg-white/[0.02] transition-colors">
+                <td class="px-6 py-4">
+                  <div class="font-semibold text-white">{{ p.libro.titulo }}</div>
+                  <div class="text-xs text-gray-500 uppercase">{{ p.libro.autor }}</div>
+                </td>
+                <td class="px-6 py-4 text-gray-300">
+                  <div class="font-medium text-gray-200">{{ p.usuario.nombre }}</div>
+                  <div class="text-xs text-gray-500">{{ p.usuario.email }}</div>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-400">
+                  {{ p.fechaPrestamo | date:'shortDate' }}
+                </td>
+                <td class="px-6 py-4 text-sm font-mono" [class.text-red-400]="p.estado === 'atrasado'">
+                  {{ p.fechaDevolucionEsperada | date:'shortDate' }}
+                </td>
+                <td class="px-6 py-4">
+                  <span [class]="getEstadoClass(p.estado)">
+                    {{ p.estado | uppercase }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  @if (p.estado === 'activo') {
+                    <button 
+                      (click)="devolver(p.id)"
+                      class="px-4 py-1.5 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white rounded-lg border border-blue-500/20 transition-all text-xs font-bold uppercase">
+                      Devolver
+                    </button>
+                  } @else {
+                     <span class="text-xs text-gray-600 font-medium italic">Finalizado el {{ p.fechaDevolucionReal | date:'shortDate' }}</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              @if (!loading()) {
+                <tr>
+                  <td colspan="6" class="px-6 py-20 text-center">
+                    <div class="text-gray-600 mb-2 italic">No hay registros de préstamos todavía.</div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment.development';
 
 export interface AuthUser {
   id: string;
@@ -28,7 +29,7 @@ export class AuthService {
   public isAuthenticated = signal<boolean>(false);
   public currentUser = signal<AuthUser | null>(null);
 
-  private readonly API_URL = 'http://localhost:3000/api/auth';
+  private readonly API_URL = `${environment.apiUrl}/auth`;
 
   constructor(private http: HttpClient, private router: Router) {}
 
