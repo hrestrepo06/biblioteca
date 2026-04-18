@@ -18,15 +18,15 @@ const prestamoSchema = new Schema(
     },
     fechaDevolucionEsperada: { 
       type: Date, 
-      required: true 
+      required: false 
     },
     fechaDevolucionReal: { 
       type: Date 
     },
     estado: { 
       type: String, 
-      enum: ['activo', 'devuelto', 'atrasado'], 
-      default: 'activo' 
+      enum: ['pendiente', 'activo', 'devuelto', 'atrasado', 'rechazado'], 
+      default: 'pendiente' 
     },
   },
   {

@@ -87,4 +87,80 @@ export class PrestamosService {
       return [];
     }
   }
+
+  // --- SISTEMA DE RESERVAS ASÍNCRONAS ---
+
+  async solicitarReserva(libroId: string) {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ ok: boolean, msg: string }>(
+          `${this.apiUrl}/solicitar`, 
+          { libroId }, 
+          { withCredentials: true }
+        )
+      );
+      return response;
+    } catch (err: any) {
+      const msg = err.error?.msg || 'Error al solicitar reserva';
+      this.error.set(msg);
+      throw err;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async obtenerPendientes() {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ ok: boolean, solicitudes: Prestamo[] }>(
+          `${this.apiUrl}/pendientes`, 
+          { withCredentials: true }
+        )
+      );
+      return response.ok ? response.solicitudes : [];
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }
+
+  async aprobarReserva(id: string) {
+    this.loading.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.http.put<{ ok: boolean, msg: string }>(
+          `${this.apiUrl}/${id}/aprobar`, 
+          {}, 
+          { withCredentials: true }
+        )
+      );
+      return response;
+    } catch (err: any) {
+      this.error.set(err.error?.msg || 'Error al aprobar reserva');
+      throw err;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async rechazarReserva(id: string) {
+    this.loading.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.http.put<{ ok: boolean, msg: string }>(
+          `${this.apiUrl}/${id}/rechazar`, 
+          {}, 
+          { withCredentials: true }
+        )
+      );
+      return response;
+    } catch (err: any) {
+      this.error.set(err.error?.msg || 'Error al rechazar reserva');
+      throw err;
+    } finally {
+      this.loading.set(false);
+    }
+  }
 }

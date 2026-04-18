@@ -159,3 +159,143 @@ export const obtenerPrestamosPorUsuario = async (req: Request, res: Response) =>
     res.status(500).json({ ok: false, msg: 'Error al obtener préstamos del usuario' });
   }
 };
+
+/**
+ * [LECTOR] Solicita la reserva de un libro remotamente
+ * POST /api/prestamos/solicitar
+ */
+export const solicitarReserva = async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { libroId } = req.body;
+    const usuarioId = (req as any).user.id; // Lector logueado
+
+    const libro = await Libro.findById(libroId).session(session);
+    if (!libro || !libro.disponible) {
+      await session.abortTransaction();
+      res.status(400).json({ ok: false, msg: 'Libro no disponible para reserva' });
+      return;
+    }
+
+    // Límite estricto de préstamos/reservas por usuario
+    const activos = await Prestamo.countDocuments({
+      usuario: usuarioId,
+      estado: { $in: ['activo', 'pendiente'] }
+    }).session(session);
+
+    if (activos >= 3) {
+      await session.abortTransaction();
+      res.status(400).json({ ok: false, msg: 'Has alcanzado el límite de 3 solicitudes/préstamos' });
+      return;
+    }
+
+    // Crear la solicitud
+    const nuevaReserva = new Prestamo({
+      libro: libroId,
+      usuario: usuarioId,
+      estado: 'pendiente'
+    });
+    await nuevaReserva.save({ session });
+
+    // Bloquear el libro en el catálogo
+    libro.disponible = false;
+    await libro.save({ session });
+
+    await session.commitTransaction();
+    
+    res.status(201).json({ ok: true, msg: 'Reserva solicitada. Espera aprobación en biblioteca.' });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(500).json({ ok: false, msg: 'Error al procesar la reserva' });
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
+ * [ADMIN] Aprueba una reserva pasándola a activa
+ * PUT /api/prestamos/:id/aprobar
+ */
+export const aprobarReserva = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const prestamo = await Prestamo.findById(id);
+
+    if (!prestamo || prestamo.estado !== 'pendiente') {
+      res.status(400).json({ ok: false, msg: 'La solicitud no existe o ya no está pendiente' });
+      return;
+    }
+
+    const fechaPrestamo = new Date();
+    const fechaDevolucionEsperada = new Date();
+    fechaDevolucionEsperada.setDate(fechaPrestamo.getDate() + 3);
+
+    prestamo.estado = 'activo';
+    prestamo.fechaPrestamo = fechaPrestamo;
+    prestamo.fechaDevolucionEsperada = fechaDevolucionEsperada;
+    await prestamo.save();
+
+    res.json({ ok: true, msg: 'Reserva aprobada con éxito' });
+  } catch (error) {
+    res.status(500).json({ ok: false, msg: 'Error al aprobar reserva' });
+  }
+};
+
+/**
+ * [ADMIN] Rechaza una reserva y libera el libro
+ * PUT /api/prestamos/:id/rechazar
+ */
+export const rechazarReserva = async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { id } = req.params;
+    const prestamo = await Prestamo.findById(id).session(session);
+
+    if (!prestamo || prestamo.estado !== 'pendiente') {
+      await session.abortTransaction();
+      res.status(400).json({ ok: false, msg: 'Reserva intrazable o ya gestionada' });
+      return;
+    }
+
+    // 1. Marcar como rechazado (Historial)
+    prestamo.estado = 'rechazado';
+    prestamo.fechaDevolucionReal = new Date(); // opcional, para saber cuándo se canceló
+    await prestamo.save({ session });
+
+    // 2. Liberar el ejemplar
+    const libro = await Libro.findById(prestamo.libro).session(session);
+    if (libro) {
+      libro.disponible = true;
+      await libro.save({ session });
+    }
+
+    await session.commitTransaction();
+    res.json({ ok: true, msg: 'Reserva cancelada y ejemplar liberado' });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(500).json({ ok: false, msg: 'Error al cancelar la reserva' });
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
+ * [ADMIN] Obtiene la bandeja de entrada de reservas pendientes
+ * GET /api/prestamos/pendientes
+ */
+export const obtenerPendientes = async (req: Request, res: Response) => {
+  try {
+    const solicitudes = await Prestamo.find({ estado: 'pendiente' })
+      .populate('libro', 'titulo autor portadaUrl')
+      .populate('usuario', 'nombre email')
+      .sort({ createdAt: 1 }); // Las más antiguas primero
+
+    res.json({ ok: true, solicitudes });
+  } catch (error) {
+    res.status(500).json({ ok: false, msg: 'Error al cargar bandeja' });
+  }
+};

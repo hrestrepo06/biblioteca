@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Libros } from '../../services/libros';
 import { AuthService } from '../../services/auth';
+import { PrestamosService } from '../../services/prestamos';
 import { PrestamoForm } from '../prestamo-form/prestamo-form';
 import { FormsModule } from '@angular/forms';
 
@@ -15,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 export class LibroList implements OnInit {
   private libroService = inject(Libros);
   private authService = inject(AuthService);
+  private prestamosService = inject(PrestamosService);
   
   libros = this.libroService.libros;
   loading = this.libroService.loading;
@@ -80,6 +82,18 @@ export class LibroList implements OnInit {
   
   recargar() {
     this.libroService.obtenerLibros();
+  }
+
+  async solicitarReserva(libroId: string) {
+    if (confirm('¿Deseas solicitar este libro para reserva? El estado pasará a pendiente.')) {
+      try {
+        const respuesta = await this.prestamosService.solicitarReserva(libroId);
+        alert(respuesta.msg || 'Solicitud de reserva enviada.');
+        this.recargar(); // Recargar el catálogo para que pase a 'En Préstamo/Reservado'
+      } catch (err: any) {
+        alert(err.error?.msg || 'Error al solicitar.');
+      }
+    }
   }
 
   onLogout() {

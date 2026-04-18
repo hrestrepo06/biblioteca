@@ -113,6 +113,13 @@
                   </button>
                 }
 
+                @if (libro.disponible !== false && currentUser()?.rol === 'lector') {
+                  <button (click)="solicitarReserva(libro._id!)" 
+                          class="w-full py-3.5 bg-green-500 text-gray-950 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-green-400 transition-all transform active:scale-95 shadow-lg shadow-green-500/30 animate-pulse">
+                          Solicitar Reserva
+                  </button>
+                }
+
                 <div class="flex gap-3 w-full pt-4 border-t border-gray-800/60 mt-2">
                   @if (currentUser()?.rol === 'admin' || currentUser()?.rol === 'bibliotecario') {
                     <a [routerLink]="['/libros/editar', libro._id]" 

@@ -8,25 +8,10 @@ export async function obtenerEstadisticas(req: Request, res: Response) {
         const user = (req as any).user;
         const { id: userId, rol } = user;
 
-        // --- LÓGICA PARA LECTOR ---
-        if (rol === 'lector') {
-            const misPrestamos = await Prestamo.find({ 
-                usuario: userId, 
-                estado: 'activo' 
-            })
-            .sort({ fechaDevolucionEsperada: 1 })
-            .populate('libro', 'titulo portadaUrl autor');
-
-            return res.status(200).json({
-                success: true,
-                rol: 'lector',
-                misPrestamos,
-                actividadReciente: [] // El lector no ve actividad global por privacidad
-            });
-        }
 
         // --- LÓGICA PARA BIBLIOTECARIO / ADMIN ---
-        const [totalLibros, prestamosActivos, totalUsuarios] = await Promise.all([
+        if (rol === 'admin' || rol === 'bibliotecario') {
+            const [totalLibros, prestamosActivos, totalUsuarios] = await Promise.all([
             Libro.countDocuments(),
             Prestamo.countDocuments({ estado: 'activo' }),
             Usuario.countDocuments()
@@ -64,20 +49,38 @@ export async function obtenerEstadisticas(req: Request, res: Response) {
 
         const prestamosAtrasados = atrasadosDetalle.length;
 
+            return res.status(200).json({
+                success: true,
+                rol: 'admin_biblio',
+                stats: {
+                    totalLibros,
+                    prestamosActivos,
+                    totalDisponibles,
+                    prestamosAtrasados,
+                    totalUsuarios
+                },
+                vencenHoy,
+                atrasadosDetalle,
+                actividadReciente
+            });
+        }
+
+        // --- DEFAULT FALLBACK PARA LECTORES (O usuarios sin rol definido) ---
+        const misPrestamos = await Prestamo.find({ 
+            usuario: userId, 
+            estado: 'activo' 
+        })
+        .sort({ fechaDevolucionEsperada: 1 })
+        .populate('libro', 'titulo portadaUrl autor');
+
         return res.status(200).json({
             success: true,
-            rol: 'admin_biblio',
-            stats: {
-                totalLibros,
-                prestamosActivos,
-                totalDisponibles,
-                prestamosAtrasados,
-                totalUsuarios
-            },
-            vencenHoy,
-            atrasadosDetalle,
-            actividadReciente
+            rol: 'lector',
+            misPrestamos,
+            actividadReciente: [] // El lector no ve actividad global por privacidad
         });
+
+
     } catch (error: any) {
         return res.status(500).json({
             success: false,
