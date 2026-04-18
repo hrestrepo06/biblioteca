@@ -24,11 +24,55 @@ export async function crearLibro(req: Request, res: Response) {
 }
 
 export async function listarLibros(req: Request, res: Response) {
-    const libros = await Libro.find().sort({ createdAt: -1 });
-    return res.status(200).json({ 
-        success: true, 
-        libros 
-    });
+    try {
+        // Parametrización de entrada
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const search = req.query.search as string;
+        const category = req.query.category as string;
+        
+        const skip = (page - 1) * limit;
+
+        // Construcción del Filtro Optimizado (El buscador se muda al Backend)
+        const filter: any = {};
+        
+        if (search) {
+            filter.$or = [
+                { titulo: { $regex: search, $options: 'i' } },
+                { autor: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        if (category && category !== 'Todas') {
+            filter.categoria = category;
+        }
+
+        // Ejecutar Búsqueda y Conteo Paralelamente (Perfomance)
+        const [libros, total] = await Promise.all([
+            Libro.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            Libro.countDocuments(filter)
+        ]);
+
+        return res.status(200).json({ 
+            success: true, 
+            libros,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                hasMore: skip + libros.length < total
+            }
+        });
+    } catch (e: any) {
+        return res.status(500).json({
+            success: false,
+            msg: `Error al paginar catálogo: ${e?.message || e}`
+        });
+    }
 };
 
 export async function obtenerLibro(req: Request, res: Response) {

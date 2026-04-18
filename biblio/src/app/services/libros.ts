@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Libro, LibroCreate } from '../models/libro.model';
 import { environment } from '../../environments/environment.development';
@@ -16,10 +16,18 @@ export class Libros {
   private loadingMutation = signal<boolean>(false);
   private errorMutation = signal<string | null>(null);
 
-  // -- Lecturas Reactivas (httpResource) --
-  // Obtiene los libros automáticamente
-  librosResource = httpResource(() => this.apiUrl, {
-    parse: (resp: any) => resp.libros as Libro[]
+  // -- Estado Local para Paginación y Filtrado --
+  public queryData = signal({ page: 1, limit: 10, search: '', category: 'Todas' });
+  public metaPagination = signal<{ total: number, page: number, totalPages: number, hasMore: boolean } | null>(null);
+  private acumuladoLibros = signal<Libro[]>([]);
+
+  // -- Lectura Reactiva (httpResource paramétrico) --
+  librosResource = httpResource(() => {
+    const { page, limit, search, category } = this.queryData();
+    let url = `${this.apiUrl}?page=${page}&limit=${limit}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (category && category !== 'Todas') url += `&category=${encodeURIComponent(category)}`;
+    return url;
   });
 
   // Signal para almacenar el ID que buscamos consultar
@@ -34,7 +42,7 @@ export class Libros {
   });
 
   // -- API Pública Expuesta para Componentes --
-  public libros = computed(() => this.librosResource.value() ?? []);
+  public libros = computed(() => this.acumuladoLibros());
   public selectedLibro = computed(() => this.selectedLibroResource.value() ?? null);
   public totalLibros = computed(() => this.libros().length);
 
@@ -52,14 +60,46 @@ export class Libros {
     (this.selectedLibroResource.error() ? 'Error al recurso' : null)
   );
 
+  public hasMore = computed(() => this.metaPagination()?.hasMore ?? false);
+
+  constructor() {
+    // Sincronizar el httpResource paginado con el signal acumulador
+    effect(() => {
+      const val = this.librosResource.value() as any;
+      if (val?.success && Array.isArray(val.libros)) {
+        if (this.queryData().page === 1) {
+          // Búsqueda/filtro nuevo: reemplazar todo
+          this.acumuladoLibros.set(val.libros);
+        } else {
+          // Página siguiente: concatenar evitando duplicados
+          this.acumuladoLibros.update(prev => {
+            const nuevos = val.libros.filter((l: any) => !prev.some((p: any) => p._id === l._id));
+            return [...prev, ...nuevos];
+          });
+        }
+        this.metaPagination.set(val.pagination);
+      }
+    }, { allowSignalWrites: true });
+  }
+
   // ------------------------------------------
   // Métodos Públicos
   // ------------------------------------------
 
   obtenerLibros(): void {
-    // Al usar httpResource esto es redundante porque hace fetch al cargar, 
-    // pero lo dejamos disponible para recargar manual si los componentes lo requieren.
     this.librosResource.reload();
+  }
+
+  aplicarFiltros(search: string, category: string): void {
+    // Regresamos a la página 1 para el nuevo término de búsqueda
+    this.queryData.set({ page: 1, limit: 12, search, category });
+  }
+
+  nextPage(): void {
+    const meta = this.metaPagination();
+    if (meta && meta.hasMore && !this.loading()) {
+      this.queryData.update(q => ({ ...q, page: q.page + 1 }));
+    }
   }
   
   async crearLibro(libro: LibroCreate): Promise<void> {
@@ -70,7 +110,8 @@ export class Libros {
       const response = await firstValueFrom(
         this.http.post<{success: boolean, libro: Libro}>(this.apiUrl, libro)
       );
-      this.librosResource.update(libros => [...(libros ?? []), response.libro]);
+      // Para consistencia con la paginación, si el usuario crea uno forzamos reload general
+      this.obtenerLibros();
       this.loadingMutation.set(false);
     } catch (error) {
       this.errorMutation.set('Error al crear el libro');
@@ -93,8 +134,8 @@ export class Libros {
       const response = await firstValueFrom(
         this.http.put<{success: boolean, libro: Libro}>(`${this.apiUrl}/${id}`, libro)
       );
-      this.librosResource.update(libros =>
-        (libros ?? []).map(lib => lib._id === id ? response.libro : lib)
+      this.acumuladoLibros.update(libros =>
+        libros.map(lib => lib._id === id ? response.libro : lib)
       );
       this.loadingMutation.set(false);
     } catch (error) {
@@ -111,7 +152,7 @@ export class Libros {
     
     try {
       await firstValueFrom(this.http.delete(`${this.apiUrl}/${id}`));
-      this.librosResource.update(libros => (libros ?? []).filter(lib => lib._id !== id));
+      this.acumuladoLibros.update(libros => libros.filter(lib => lib._id !== id));
       if (this.selectedIdSignal() === id) {
         this.selectedIdSignal.set(null);
       }
