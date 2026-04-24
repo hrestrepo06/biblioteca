@@ -1,10 +1,21 @@
 import { Request, Response } from 'express';
 import { Libro } from '../models/libro.model';
+import { registrarAuditoria } from '../services/auditoria.service';
 
 
 export async function crearLibro(req: Request, res: Response) {
+    const actor = (req as any).user;
     try {
         const libro = await Libro.create(req.body);
+        registrarAuditoria({
+            accion: 'CREAR_LIBRO',
+            usuarioId: actor.id,
+            nombreUsuario: actor.email,
+            entidad: 'Libro',
+            entidadId: libro._id.toString(),
+            detalle: `Creado: "${libro.titulo}" de ${libro.autor}`,
+            ip: req.ip,
+        });
         return res.status(201).json({
             success: true,
             libro
@@ -97,15 +108,25 @@ export async function obtenerLibro(req: Request, res: Response) {
 }
 
 export async function actualizarLibro(req: Request, res: Response) {
+    const actor = (req as any).user;
     try {
         const libro = await Libro.findByIdAndUpdate(req.params.id, req.body, 
-            { new: true, runValidators: true });
+            { returnDocument: 'after', runValidators: true });
         if (!libro) {
             return res.status(404).json({
                 success: false,
                 msg: "Libro no existe"
             })
         }
+        registrarAuditoria({
+            accion: 'EDITAR_LIBRO',
+            usuarioId: actor.id,
+            nombreUsuario: actor.email,
+            entidad: 'Libro',
+            entidadId: libro._id.toString(),
+            detalle: `Editado: "${libro.titulo}"`,
+            ip: req.ip,
+        });
         return res.status(200).json({
             success: true,
             libro
@@ -125,6 +146,7 @@ export async function actualizarLibro(req: Request, res: Response) {
 }
 
 export async function eliminarLibro(req: Request, res: Response) {
+    const actor = (req as any).user;
     try {
         const libro = await Libro.findByIdAndDelete(req.params.id);
         if (!libro) {
@@ -133,6 +155,15 @@ export async function eliminarLibro(req: Request, res: Response) {
                 msg: "Libro no existe"
             })
         }
+        registrarAuditoria({
+            accion: 'ELIMINAR_LIBRO',
+            usuarioId: actor.id,
+            nombreUsuario: actor.email,
+            entidad: 'Libro',
+            entidadId: req.params.id,
+            detalle: `Eliminado: "${libro.titulo}"`,
+            ip: req.ip,
+        });
         return res.status(200).json({
             success: true,
             msg: "Libro eliminado correctamente"

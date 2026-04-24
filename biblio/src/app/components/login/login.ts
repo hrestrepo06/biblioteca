@@ -2,9 +2,11 @@ import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { ROUTES } from '../../constants/app.constants';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -16,24 +18,19 @@ export class Login implements OnInit {
   private route = inject(ActivatedRoute);
 
   ngOnInit(): void {
-    // Aseguramos que el formulario esté vacío al entrar, 
-    // previniendo "sobras" de sesiones anteriores.
     this.loginForm.reset();
   }
 
-  // ── Formulario reactivo ────────────────────────────────────────────
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  // ── Señales de estado ──────────────────────────────────────────────
   isLoading = signal<boolean>(false);
   errorMessage = signal<string>('');
   hasError = signal<boolean>(false);
   showPassword = signal<boolean>(false);
 
-  // ── Computed: validaciones inline ─────────────────────────────────
   emailInvalid = computed(() => {
     const ctrl = this.loginForm.get('email');
     return ctrl ? ctrl.invalid && ctrl.touched : false;
@@ -46,7 +43,6 @@ export class Login implements OnInit {
 
   currentYear = new Date().getFullYear();
 
-  // ── Métodos ────────────────────────────────────────────────────────
   togglePassword(): void {
     this.showPassword.update((v) => !v);
   }
@@ -63,23 +59,17 @@ export class Login implements OnInit {
 
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
-        // Redirigir a la URL original o a libros por defecto
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/libros';
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? ROUTES.LIBROS;
         this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {
         this.isLoading.set(false);
         this.hasError.set(true);
-
         if (err.status === 401) {
-          this.errorMessage.set('Credenciales incorrectas. Verifica tu correo y contraseña.');
-        } else if (err.status === 0) {
-          this.errorMessage.set('No se pudo conectar al servidor. Intenta más tarde.');
+          this.errorMessage.set('Credenciales incorrectas.');
         } else {
-          this.errorMessage.set('Ocurrió un error inesperado. Intenta de nuevo.');
+          this.errorMessage.set('Error inesperado.');
         }
-
-        // Limpia el estado de shake después de la animación
         setTimeout(() => this.hasError.set(false), 500);
       },
       complete: () => this.isLoading.set(false),

@@ -9,6 +9,8 @@ export const LibroCreateSchema = z.object({
     editorial: z.string().trim().optional().default(''),
     categoria: z.string().trim().optional().default(''),
     sede: z.string().trim().optional().default(''),
+    portadaUrl: z.string().trim().optional().default(''),
+    contraportadaUrl: z.string().trim().optional().default(''),
 }).strict();
 
 export const LibroUpdateSchema = LibroCreateSchema.partial().refine(

@@ -1,5 +1,6 @@
+<h1 style="background: yellow; color: black; padding: 20px; text-align: center;">EL MOTOR DE ANGULAR ESTÁ FUNCIONANDO (ZONE.JS ACTIVO)</h1>
 <app-nav></app-nav>
 
-<main class="min-h-screen bg-gray-950 transition-all duration-300">
+<main [class.has-sidebar]="isAuthenticated()" class="transition-all duration-300">
   <router-outlet />
 </main>

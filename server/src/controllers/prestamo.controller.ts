@@ -3,6 +3,7 @@ import { Prestamo } from '../models/prestamo.model';
 import { Libro } from '../models/libro.model';
 import { Usuario } from '../models/usuario.model';
 import mongoose from 'mongoose';
+import { registrarAuditoria } from '../services/auditoria.service';
 
 /**
  * Registra un nuevo préstamo
@@ -75,6 +76,17 @@ export const crearPrestamo = async (req: Request, res: Response) => {
       .populate('libro', 'titulo autor')
       .populate('usuario', 'nombre email');
 
+    const actor = (req as any).user;
+    registrarAuditoria({
+      accion: 'CREAR_PRESTAMO',
+      usuarioId: actor.id,
+      nombreUsuario: actor.email,
+      entidad: 'Prestamo',
+      entidadId: nuevoPrestamo._id.toString(),
+      detalle: `Préstamo de "${libro.titulo}" a ${usuario.nombre}`,
+      ip: req.ip,
+    });
+
     res.status(201).json({ ok: true, prestamo: prestamoPoblado });
 
   } catch (error) {
@@ -117,6 +129,18 @@ export const devolverLibro = async (req: Request, res: Response) => {
     }
 
     await session.commitTransaction();
+
+    const actor = (req as any).user;
+    registrarAuditoria({
+      accion: 'DEVOLVER_LIBRO',
+      usuarioId: actor.id,
+      nombreUsuario: actor.email,
+      entidad: 'Prestamo',
+      entidadId: id,
+      detalle: `Devolución del préstamo #${id}`,
+      ip: req.ip,
+    });
+
     res.json({ ok: true, msg: 'Libro devuelto exitosamente' });
 
   } catch (error) {
@@ -204,7 +228,18 @@ export const solicitarReserva = async (req: Request, res: Response) => {
     await libro.save({ session });
 
     await session.commitTransaction();
-    
+
+    const actor = (req as any).user;
+    registrarAuditoria({
+      accion: 'SOLICITAR_RESERVA',
+      usuarioId: actor.id,
+      nombreUsuario: actor.email,
+      entidad: 'Prestamo',
+      entidadId: nuevaReserva._id.toString(),
+      detalle: `Reserva solicitada para libro #${libroId}`,
+      ip: req.ip,
+    });
+
     res.status(201).json({ ok: true, msg: 'Reserva solicitada. Espera aprobación en biblioteca.' });
   } catch (error) {
     await session.abortTransaction();
@@ -236,6 +271,17 @@ export const aprobarReserva = async (req: Request, res: Response) => {
     prestamo.fechaPrestamo = fechaPrestamo;
     prestamo.fechaDevolucionEsperada = fechaDevolucionEsperada;
     await prestamo.save();
+
+    const actor = (req as any).user;
+    registrarAuditoria({
+      accion: 'APROBAR_RESERVA',
+      usuarioId: actor.id,
+      nombreUsuario: actor.email,
+      entidad: 'Prestamo',
+      entidadId: id,
+      detalle: `Reserva #${id} aprobada y convertida a préstamo activo`,
+      ip: req.ip,
+    });
 
     res.json({ ok: true, msg: 'Reserva aprobada con éxito' });
   } catch (error) {
@@ -274,6 +320,18 @@ export const rechazarReserva = async (req: Request, res: Response) => {
     }
 
     await session.commitTransaction();
+
+    const actor = (req as any).user;
+    registrarAuditoria({
+      accion: 'RECHAZAR_RESERVA',
+      usuarioId: actor.id,
+      nombreUsuario: actor.email,
+      entidad: 'Prestamo',
+      entidadId: id,
+      detalle: `Reserva #${id} rechazada y ejemplar liberado`,
+      ip: req.ip,
+    });
+
     res.json({ ok: true, msg: 'Reserva cancelada y ejemplar liberado' });
   } catch (error) {
     await session.abortTransaction();

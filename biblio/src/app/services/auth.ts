@@ -1,6 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, tap, catchError, of, finalize } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment.development';
 
@@ -25,13 +25,18 @@ export interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
+  
   // ─── Signal reactivo del estado de autenticación ───────────────────────────
   public isAuthenticated = signal<boolean>(false);
   public currentUser = signal<AuthUser | null>(null);
+  public isInitializing = signal<boolean>(true);
 
   private readonly API_URL = `${environment.apiUrl}/auth`;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  //constructor(private http: HttpClient, private router: Router) {}
+
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
   /**
    * Envía credenciales al backend.
@@ -67,7 +72,8 @@ export class AuthService {
           this.isAuthenticated.set(false);
           this.currentUser.set(null);
           return of(null);
-        })
+        }),
+        finalize(() => this.isInitializing.set(false))
       );
   }
 

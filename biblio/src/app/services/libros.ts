@@ -3,6 +3,7 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { Libro, LibroCreate } from '../models/libro.model';
 import { environment } from '../../environments/environment.development';
 import { firstValueFrom } from 'rxjs';
+import { CATEGORIES } from '../constants/app.constants';
 
 @Injectable({
   providedIn: 'root'
@@ -15,9 +16,9 @@ export class Libros {
   // -- Estado Local para Mutaciones --
   private loadingMutation = signal<boolean>(false);
   private errorMutation = signal<string | null>(null);
-
+ 
   // -- Estado Local para Paginación y Filtrado --
-  public queryData = signal({ page: 1, limit: 10, search: '', category: 'Todas' });
+  public queryData = signal({ page: 1, limit: 25, search: '', category: CATEGORIES.ALL });
   public metaPagination = signal<{ total: number, page: number, totalPages: number, hasMore: boolean } | null>(null);
   private acumuladoLibros = signal<Libro[]>([]);
 
@@ -26,7 +27,7 @@ export class Libros {
     const { page, limit, search, category } = this.queryData();
     let url = `${this.apiUrl}?page=${page}&limit=${limit}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
-    if (category && category !== 'Todas') url += `&category=${encodeURIComponent(category)}`;
+    if (category && category !== CATEGORIES.ALL) url += `&category=${encodeURIComponent(category)}`;
     return url;
   });
 
@@ -92,7 +93,7 @@ export class Libros {
 
   aplicarFiltros(search: string, category: string): void {
     // Regresamos a la página 1 para el nuevo término de búsqueda
-    this.queryData.set({ page: 1, limit: 12, search, category });
+    this.queryData.set({ page: 1, limit: 25, search, category });
   }
 
   nextPage(): void {
@@ -112,6 +113,7 @@ export class Libros {
       );
       // Para consistencia con la paginación, si el usuario crea uno forzamos reload general
       this.obtenerLibros();
+      this.selectedLibroResource.reload(); // <--- RECARGAR PARA DETALLE
       this.loadingMutation.set(false);
     } catch (error) {
       this.errorMutation.set('Error al crear el libro');
@@ -137,6 +139,7 @@ export class Libros {
       this.acumuladoLibros.update(libros =>
         libros.map(lib => lib._id === id ? response.libro : lib)
       );
+      this.selectedLibroResource.reload(); // <--- RECARGAR PARA DETALLE/EDICION
       this.loadingMutation.set(false);
     } catch (error) {
       this.errorMutation.set('Error al actualizar el libro');

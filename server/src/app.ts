@@ -11,6 +11,7 @@ import { authRouter } from './routes/auth.routes';
 import { usuarioRouter } from './routes/usuario.routes';
 import { prestamosRouter } from './routes/prestamo.routes';
 import dashboardRouter from './routes/dashboard.routes';
+import auditoriaRouter from './routes/auditoria.routes';
 
 export const app = express();
 
@@ -52,6 +53,7 @@ app.use('/api/libros', librosRouter);
 app.use('/api/usuarios', usuarioRouter);
 app.use('/api/prestamos', prestamosRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/auditoria', auditoriaRouter);
 
 // ── Global Error Handler Profesional ──────────────────────────────────────────
 app.use((err: any, req: Request, res: Response, _next: NextFunction) => {

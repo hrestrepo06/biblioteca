@@ -1,7 +1,7 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { Router } from '@angular/router';
+//import { Router } from '@angular/router';
 import { AuthService } from '../services/auth';
 
 /**
@@ -13,7 +13,7 @@ import { AuthService } from '../services/auth';
  *   2. Manejar el 401 (token expirado/inválido) redirigiendo al login.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const router = inject(Router);
+  //const router = inject(Router);
   const authService = inject(AuthService);
 
   // Clona la petición y agrega withCredentials para el envío automático de la cookie
@@ -24,10 +24,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        // Token expirado o sesión inválida — limpiamos estado y redirigimos
+        // Solo limpiamos el estado. La redirección la manejarán los Guards.
         authService.isAuthenticated.set(false);
         authService.currentUser.set(null);
-        router.navigate(['/login']);
       }
       return throwError(() => error);
     })

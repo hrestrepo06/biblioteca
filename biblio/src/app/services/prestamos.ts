@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Prestamo, PrestamoCreate } from '../models/prestamo.model';
@@ -11,68 +11,49 @@ export class PrestamosService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/prestamos`;
 
-  // Recurso reactivo para la lista de préstamos
+  // Recurso reactivo para la lista de préstamos (con credenciales)
   private prestamosResource = httpResource<{ ok: boolean, prestamos: Prestamo[] }>(
-    () => this.apiUrl
+    () => ({ url: this.apiUrl, withCredentials: true })
   );
 
-  // Signals expuestos
-  prestamos = signal<Prestamo[]>([]);
-  loading = signal<boolean>(false);
-  error = signal<string | null>(null);
+  // Signals computados — siempre en sincronía con el recurso (READ-ONLY)
+  prestamos = computed(() => this.prestamosResource.value()?.prestamos ?? []);
+  loading   = computed(() => this.prestamosResource.isLoading() || this._loadingMutation());
+  error     = computed(() => this.prestamosResource.error() ? 'Error al cargar préstamos' : this._errorMutation());
 
-  constructor() {
-    // Sincronizar el signal con el recurso
-    const effect = () => {
-        const val = this.prestamosResource.value();
-        if (val?.ok) this.prestamos.set(val.prestamos);
-        this.loading.set(this.prestamosResource.isLoading());
-        if (this.prestamosResource.error()) this.error.set('Error al cargar préstamos');
-    };
-  }
+  // Signals escribibles para operaciones de mutación (reservas)
+  private _loadingMutation = signal<boolean>(false);
+  private _errorMutation   = signal<string | null>(null);
 
   async obtenerPrestamos() {
     this.prestamosResource.reload();
   }
 
   async crearPrestamo(data: PrestamoCreate) {
-    this.loading.set(true);
-    this.error.set(null);
     try {
       const response = await firstValueFrom(
         this.http.post<{ ok: boolean, prestamo: Prestamo }>(this.apiUrl, data, { withCredentials: true })
       );
       if (response.ok) {
-        this.prestamos.update(prev => [response.prestamo, ...prev]);
+        this.prestamosResource.reload();
         return response.prestamo;
       }
       throw new Error('Error al crear el préstamo');
     } catch (err: any) {
-      const msg = err.error?.msg || 'Error al conectar con el servidor';
-      this.error.set(msg);
       throw err;
-    } finally {
-      this.loading.set(false);
     }
   }
 
   async devolverLibro(id: string) {
-    this.loading.set(true);
-    this.error.set(null);
     try {
       const response = await firstValueFrom(
         this.http.put<{ ok: boolean }>(`${this.apiUrl}/devolver/${id}`, {}, { withCredentials: true })
       );
       if (response.ok) {
-        // Actualizar localmente el estado sin recargar todo
-        this.prestamos.update(prev => 
-          prev.map(p => p.id === id ? { ...p, estado: 'devuelto', fechaDevolucionReal: new Date().toISOString() } : p)
-        );
+        this.prestamosResource.reload();
       }
     } catch (err: any) {
-      this.error.set(err.error?.msg || 'Error al procesar la devolución');
-    } finally {
-      this.loading.set(false);
+      throw err;
     }
   }
 
@@ -91,23 +72,22 @@ export class PrestamosService {
   // --- SISTEMA DE RESERVAS ASÍNCRONAS ---
 
   async solicitarReserva(libroId: string) {
-    this.loading.set(true);
-    this.error.set(null);
+    this._loadingMutation.set(true);
+    this._errorMutation.set(null);
     try {
       const response = await firstValueFrom(
         this.http.post<{ ok: boolean, msg: string }>(
-          `${this.apiUrl}/solicitar`, 
-          { libroId }, 
+          `${this.apiUrl}/solicitar`,
+          { libroId },
           { withCredentials: true }
         )
       );
       return response;
     } catch (err: any) {
-      const msg = err.error?.msg || 'Error al solicitar reserva';
-      this.error.set(msg);
+      this._errorMutation.set(err.error?.msg || 'Error al solicitar reserva');
       throw err;
     } finally {
-      this.loading.set(false);
+      this._loadingMutation.set(false);
     }
   }
 
@@ -115,7 +95,7 @@ export class PrestamosService {
     try {
       const response = await firstValueFrom(
         this.http.get<{ ok: boolean, solicitudes: Prestamo[] }>(
-          `${this.apiUrl}/pendientes`, 
+          `${this.apiUrl}/pendientes`,
           { withCredentials: true }
         )
       );
@@ -127,40 +107,40 @@ export class PrestamosService {
   }
 
   async aprobarReserva(id: string) {
-    this.loading.set(true);
+    this._loadingMutation.set(true);
     try {
       const response = await firstValueFrom(
         this.http.put<{ ok: boolean, msg: string }>(
-          `${this.apiUrl}/${id}/aprobar`, 
-          {}, 
+          `${this.apiUrl}/${id}/aprobar`,
+          {},
           { withCredentials: true }
         )
       );
       return response;
     } catch (err: any) {
-      this.error.set(err.error?.msg || 'Error al aprobar reserva');
+      this._errorMutation.set(err.error?.msg || 'Error al aprobar reserva');
       throw err;
     } finally {
-      this.loading.set(false);
+      this._loadingMutation.set(false);
     }
   }
 
   async rechazarReserva(id: string) {
-    this.loading.set(true);
+    this._loadingMutation.set(true);
     try {
       const response = await firstValueFrom(
         this.http.put<{ ok: boolean, msg: string }>(
-          `${this.apiUrl}/${id}/rechazar`, 
-          {}, 
+          `${this.apiUrl}/${id}/rechazar`,
+          {},
           { withCredentials: true }
         )
       );
       return response;
     } catch (err: any) {
-      this.error.set(err.error?.msg || 'Error al rechazar reserva');
+      this._errorMutation.set(err.error?.msg || 'Error al rechazar reserva');
       throw err;
     } finally {
-      this.loading.set(false);
+      this._loadingMutation.set(false);
     }
   }
 }

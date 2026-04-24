@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Usuario } from '../models/usuario.model';
+import { registrarAuditoria } from '../services/auditoria.service';
 
 const JWT_SECRET = process.env['JWT_SECRET'] ?? 'CAMBIA_ESTO_EN_PRODUCCION';
 const JWT_EXPIRES_IN = process.env['JWT_EXPIRES_IN'] ?? '2h';
@@ -53,6 +54,17 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
     // Enviamos el JWT dentro de una cookie HttpOnly — NO en el body
     res.cookie(COOKIE_NAME, token, cookieOptions);
+
+    // Registrar evento de seguridad (fire-and-forget)
+    registrarAuditoria({
+      accion: 'LOGIN',
+      usuarioId: usuario._id.toString(),
+      nombreUsuario: usuario.nombre,
+      entidad: 'Usuario',
+      entidadId: usuario._id.toString(),
+      detalle: `Inicio de sesión como ${usuario.rol}`,
+      ip: req.ip,
+    });
 
     res.status(200).json({
       ok: true,

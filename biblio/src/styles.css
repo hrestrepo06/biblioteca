@@ -1,2 +1,19 @@
-/* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
+
+body {
+  background-color: #18181b; /* zinc-900 */
+  color: white;
+}
+
+@theme {
+  --color-green-500: #22c55e;
+}
+
+/* Magia: Efecto de Irradiación Neon */
+.hover-neon-glow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.group:hover .hover-neon-glow, .hover-neon-glow:hover {
+  box-shadow: 0 0 60px rgba(34, 197, 94, 0.4), 0 0 20px rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.8);
+}

@@ -1,14 +1,18 @@
 {
   "name": "biblio",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon",
+    "prebuild": "rm -rf dist",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file=.env dist/server.js",
     "seed": "npx ts-node src/scripts/seed-usuario.ts",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "keywords": [],
   "author": "Henry R.",

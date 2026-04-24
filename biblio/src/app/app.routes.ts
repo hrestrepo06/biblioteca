@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
+import { Landing } from './components/landing/landing';
 import { authGuard, guestGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
-  // ── Ruta pública: Landing Page de Impacto ─────────────────────────
+  // ── Ruta pública: Landing ──────────────────────────────────────────
   {
     path: '',
-    loadComponent: () => import('./components/landing/landing').then(m => m.Landing),
+    component: Landing,
     canActivate: [guestGuard],
     pathMatch: 'full'
   },
@@ -14,10 +15,10 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./components/login/login').then(m => m.Login),
-    canActivate: [guestGuard]  // Si ya está logueado → redirige a /dashboard
+    canActivate: [guestGuard]
   },
 
-  // ── Rutas protegidas: requieren JWT válido ───────────────────────
+  // ── Rutas protegidas ──────────────────────────────────────────────
   {
     path: 'dashboard',
     loadComponent: () => import('./components/dashboard/dashboard').then(m => m.Dashboard),
@@ -46,7 +47,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-  // RUTA DE GESTIÓN DE USUARIOS (Solo Admin)
+  // Gestión de Usuarios
   {
     path: 'usuarios',
     canActivate: [authGuard],
@@ -54,28 +55,24 @@ export const routes: Routes = [
     children: [
       { 
         path: '', 
-        loadComponent: () => import('./components/usuario-list/usuario-list').then(m => m.UsuarioList), 
-        title: 'Gestión de Usuarios - Biblioteca' 
+        loadComponent: () => import('./components/usuario-list/usuario-list').then(m => m.UsuarioList)
       },
       { 
         path: 'crear', 
-        loadComponent: () => import('./components/usuario-form/usuario-form').then(m => m.UsuarioForm), 
-        title: 'Nuevo Usuario - Biblioteca' 
+        loadComponent: () => import('./components/usuario-form/usuario-form').then(m => m.UsuarioForm)
       },
       { 
         path: 'editar/:id', 
-        loadComponent: () => import('./components/usuario-form/usuario-form').then(m => m.UsuarioForm), 
-        title: 'Editar Usuario - Biblioteca' 
+        loadComponent: () => import('./components/usuario-form/usuario-form').then(m => m.UsuarioForm)
       },
       { 
         path: 'detalle/:id', 
-        loadComponent: () => import('./components/usuario-detail/usuario-detail').then(m => m.UsuarioDetail), 
-        title: 'Detalle de Usuario - Biblioteca' 
-      },
+        loadComponent: () => import('./components/usuario-detail/usuario-detail').then(m => m.UsuarioDetail)
+      }
     ]
   },
 
-  // RUTA DE PRÉSTAMOS (Admin y Bibliotecario)
+  // Préstamos
   {
     path: 'prestamos',
     canActivate: [authGuard],
@@ -83,15 +80,14 @@ export const routes: Routes = [
     children: [
       { 
         path: '', 
-        loadComponent: () => import('./components/prestamo-list/prestamo-list').then(m => m.PrestamoList), 
-        title: 'Gestión de Préstamos - Biblioteca' 
+        loadComponent: () => import('./components/prestamo-list/prestamo-list').then(m => m.PrestamoList)
       }
     ]
   },
 
-  // ── Wildcard ─────────────────────────────────────────────────────
+  // ── Comodín ──────────────────────────────────────────────────────
   {
     path: '**',
-    redirectTo: '/dashboard'
+    redirectTo: ''
   }
 ];

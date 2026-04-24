@@ -51,7 +51,9 @@
                   <!-- Portada Frontal -->
                   <div class="book-front bg-gray-900">
                     @if (libro()?.portadaUrl) {
-                      <img [src]="imageBaseUrl + libro()?.portadaUrl" class="book-cover-img" [alt]="libro()?.titulo">
+                      <img [src]="libro()?.portadaUrl?.startsWith('http') ? libro()?.portadaUrl : imageBaseUrl + libro()?.portadaUrl" 
+                           class="book-cover-img" 
+                           [alt]="libro()?.titulo">
                     } @else {
                       <div class="w-full h-full bg-gradient-to-br from-gray-800 to-gray-950 flex flex-col items-center justify-center p-10 text-center">
                         <span class="text-6xl mb-4 opacity-20">📖</span>
@@ -63,7 +65,9 @@
                   <!-- Contraportada -->
                   <div class="book-back relative">
                     @if (libro()?.contraportadaUrl) {
-                      <img [src]="imageBaseUrl + libro()?.contraportadaUrl" class="book-cover-img" [alt]="libro()?.titulo">
+                      <img [src]="libro()?.contraportadaUrl?.startsWith('http') ? libro()?.contraportadaUrl : imageBaseUrl + libro()?.contraportadaUrl" 
+                           class="book-cover-img" 
+                           [alt]="libro()?.titulo">
                     } @else {
                       <div class="w-full h-full bg-gray-950 flex flex-col items-center justify-center p-12 overflow-hidden">
                         <div class="w-full h-1 bg-gray-900 mb-2"></div>

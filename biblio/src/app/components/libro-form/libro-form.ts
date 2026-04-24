@@ -24,7 +24,9 @@ export class LibroForm {
     aPublicacion: this.fb.control(''),
     editorial: this.fb.control(''),
     categoria: this.fb.control(''),
-    sede: this.fb.control('')
+    sede: this.fb.control(''),
+    portadaUrl: this.fb.control(''),
+    contraportadaUrl: this.fb.control('')
   });
   
   esEdicion = signal(false);
@@ -53,7 +55,9 @@ export class LibroForm {
           aPublicacion: libro.aPublicacion || '',
           editorial: libro.editorial || '',
           categoria: libro.categoria || '',
-          sede: libro.sede || ''
+          sede: libro.sede || '',
+          portadaUrl: libro.portadaUrl || '',
+          contraportadaUrl: libro.contraportadaUrl || ''
         });
       }
     });
